@@ -52,14 +52,36 @@ export const User = {
         return null; // Return null if user not found
     },
 
+    // Find user by username
+    getByUsername: async function (username) {
+        const conn = await db.getConnection();
+        const [results, fields] = await conn.execute(
+            'SELECT * FROM users WHERE username = ?',
+            [username]
+        );
+        conn.release();
+        if (results.length > 0) {
+            return results[0]; // Return the user object
+        }
+        return null; // Return null if user not found
+    },
+
+    updateById: async function (id, username, email, password) {
+        const conn = await db.getConnection();
+        const [result] = await conn.execute(
+            'UPDATE users SET username=?, email=?, password=?, updated_at=NOW() WHERE id=?', [username, email, password, id]
+        );
+        conn.release();
+        return result.affectedRows > 0;
+    },
 
     deleteById: async function (id) {
         const conn = await db.getConnection();
         const [result] = await conn.execute(
-            'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?', [user.username, user.email, user.password, user.id]
+            'DELETE FROM users WHERE id = ?', [id]
         );
         conn.release();
-        return result.affectedRows > 0
+        return result.affectedRows > 0;
     },
 
     // Save user to database

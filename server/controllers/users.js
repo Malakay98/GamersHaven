@@ -1,7 +1,7 @@
 import { User } from '../models/users.js';
 import db from '../database/db.js';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import JWT from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 import validator from 'validator';
 dotenv.config()
@@ -53,9 +53,15 @@ export const createUser = async (req, res) => {
     }
     const capitalizedUser = username ? username.charAt(0).toUpperCase() + username.slice(1) : user.username;
     try {
-        const existingUser = await User.getByEmail(email);
-        if (existingUser) {
-            return res.status(400).json({ msg: "User with the provided email already exists" });
+        // Check if user with the same email already exists
+        const existingEmail = await User.getByEmail(email);
+        if (existingEmail) {
+            return res.status(400).json({ msg: 'User with the provided email already exists' });
+        }
+        // Check if user with the same username already exsit
+        const existingUsername = await User.getByUsername(username);
+        if (existingUsername) {
+            return res.status(400).json({ msg: 'User with the provided username already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -87,13 +93,9 @@ export const updateUserById = async (req, res) => {
             return res.status(400).json({ msg: "Password must be at least 6 characters long" })
         }
         const capitalizedUsername = username ? username.charAt(0).toUpperCase() + username.slice(1) : user.username;
-        const conn = await db.getConnection();
-        const [result, fields] = await conn.execute(
-            'UPDATE users SET username=?, email=?, password=?, updated_at=NOW() WHERE idusers=?',
-            [capitalizedUsername, email || user.email, password || user.password, id]
-        );
-        conn.release();
-        if (result.affectedRows > 0) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await User.updateById(id, capitalizedUsername, email, hashedPassword)
+        if (result) {
             res.json({ msg: 'User updated successfully' });
         }
     } catch (err) {
@@ -109,6 +111,8 @@ export const deleteUserById = async (req, res) => {
         const result = await User.deleteById(id);
         if (result) {
             res.json({ msg: 'User deleted successfully' });
+        } else {
+            res.json({ msg: 'User not found' })
         }
     } catch (err) {
         console.error(err);
@@ -120,7 +124,7 @@ export const deleteUserById = async (req, res) => {
 export const generateToken = (user) => {
     const payload = {
         user: {
-            idusers: user.idusers,
+            idusers: user.id,
             email: user.email,
         },
     };
@@ -130,53 +134,66 @@ export const generateToken = (user) => {
 };
 
 
-// Validate the token
-export const verifyToken = (req, res, next) => {
-    const authHeader = req.header('Authorization');
+// // Validate the token
+// export const verifyToken = (req, res, next) => {
+//     const authHeader = req.header('Authorization');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ msg: 'No token, authorization denied' });
-    }
+//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//         return res.status(401).json({ msg: 'No token, authorization denied' });
+//     }
 
-    const token = authHeader.substring(7);
+//     const token = authHeader.substring(7);
 
-    try {
-        // Verify the token
-        const decoded = JWT.verify(token, secret);
-        req.user = decoded.user;
-        next();
-    } catch (error) {
-        res.status(401).json({ msg: 'Token is not valid' });
-    }
-};
+//     try {
+//         // Verify the token
+//         const decoded = JWT.verify(token, secret);
+//         req.user = decoded.user;
+//         next();
+//     } catch (error) {
+//         res.status(401).json({ msg: 'Token is not valid' });
+//     }
+// };
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
+
     try {
         // Find user by email
         const user = await User.getByEmail(email);
-        // if the user is not found
+
+        // If the user is not found
         if (!user) {
-            return res.status(400).json({ msg: 'Invalid credentials' })
+            return res.status(400).json({ msg: 'Invalid credentials' });
         }
+
         // Compare the passwords
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log(password);
-        console.log(user.password);
-        console.log(isMatch)
+
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid Credentials, password are not matched' })
+            return res.status(400).json({ msg: 'Invalid credentials' });
         }
-        const token = generateToken(user);
-        res.json({
-            token,
-            user
-        });
+
+        // Generate and sign a JWT token
+        const payload = {
+            user: {
+                id: user.id,
+            },
+        };
+
+        JWT.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token });
+            }
+        );
     } catch (error) {
-        console.error(err.message);
-        res.status(500).send('Server Error')
+        console.error(error.message);
+        res.status(500).send('Server Error');
     }
-}
+};
 
 // Logout
 export const logoutUser = async (req, res) => {
