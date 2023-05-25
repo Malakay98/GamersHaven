@@ -12,9 +12,6 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = JWT.verify(token, process.env.JWT_SECRET);
-        console.log(decoded); // Log the decoded token to inspect its contents
-        console.log(decoded.user);
-        console.log(decoded.user.id);
         if (!decoded.user || !decoded.user.id) {
             return res
                 .status(401)
@@ -29,6 +26,9 @@ const authMiddleware = async (req, res, next) => {
         next();
     } catch (error) {
         console.error(error); // Log the error for debugging
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ msg: 'Token expired, authorization denied' });
+        }
         res.status(500).send('Server Error');
     }
 };

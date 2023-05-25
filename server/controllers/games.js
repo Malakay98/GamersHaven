@@ -21,35 +21,40 @@ export const getAllGames = async (req, res) => {
 };
 
 
+// Get game by his name
+export const getGameByName = async (req, res) => {
+    const { name } = req.body
+    try {
+        const response = await axios.get('https://api.rawg.io/api/games', {
+            params: {
+                key: process.env.RAWG_KEY,
+                search: name,
+            },
+        });
+        const game = response.data.results[0];
+        res.json(game);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Internal Server Error')
+    }
+}
 
 // Add games to fav lists
-export const addFavorite = async (req, res) => {
+export const addFavoriteGame = async (req, res) => {
     const { id } = req.params;
-    const { gameId } = req.body;
+    const { idGame } = req.body;
 
     try {
         // Check if the user exists
-        const user = await User.getById(id);
-        console.log(user)
+        const userId = parseInt(id, 10);
+        const gameId = parseInt(idGame, 10);
+        const user = await User.getById(userId);
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
 
-        // Fetch game information from RAWG API
-        const gameResponse = await axios.get(`https://api.rawg.io/api/games/${gameId}`, {
-            params: {
-                key: process.env.RAWG_KEY,
-            }
-        })
-
-        const game = gameResponse.data;
-
-        if (!game) {
-            return res.status(400).json({ msg: 'Game not found' });
-        }
-
         // Add the game to the user's favorite list
-        const result = await User.addFavorite(id, game);
+        const result = await User.addFavorite(userId, gameId);
         if (result) {
             res.json({ msg: 'Game added to your list successfully' });
         } else {
@@ -59,5 +64,4 @@ export const addFavorite = async (req, res) => {
         console.log(error);
         res.status(500).send('Server Error');
     }
-}
-
+};

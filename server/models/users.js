@@ -1,4 +1,5 @@
 import db from "../database/db.js";
+import axios from "axios";
 
 
 // User model
@@ -92,6 +93,40 @@ export const User = {
         );
         conn.release();
         return result.affectedRows > 0;
+    },
+
+    addFavorite: async function (userId, gameId) {
+        const conn = await db.getConnection();
+        try {
+            // Check if the user and game exist
+            const [userResult] = await conn.execute('SELECT * FROM users WHERE id = ?', [userId])
+
+            // Fetch game information from RAWG API
+            const gameResponse = await axios.get(`https://api.rawg.io/api/games/${gameId}`, {
+                params: {
+                    key: process.env.RAWG_KEY,
+                },
+            });
+            const game = gameResponse.data;
+
+            if (!game) {
+                return false;
+            }
+
+            if (userResult.length === 0 || gameResponse.length === 0) {
+                return false;
+            }
+
+            await conn.execute('INSERT INTO user_favorites (user_id, game_id) VALUES (?, ?)', [userId, gameId]);
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false
+        } finally {
+            // Release the connection back to the connection pool.
+            conn.release()
+        }
     }
 };
 

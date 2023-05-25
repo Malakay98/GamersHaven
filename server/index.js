@@ -1,7 +1,8 @@
 import express from "express";
 import * as dotenv from 'dotenv'
 import userRoutes from './routes/users.js';
-import gamesRoutes from './routes/games.js'
+import gamesRoutes from './routes/games.js';
+import genresRoutes from './routes/genres.js';
 dotenv.config()
 
 const app = express();
@@ -17,6 +18,9 @@ app.use('/users', userRoutes);
 
 // Routes for games
 app.use('/games', gamesRoutes)
+
+// Routes for genres
+app.use('/genres', genresRoutes)
 
 
 const PORT = process.env.PORT || 3000;
