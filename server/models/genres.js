@@ -7,7 +7,7 @@ export const Genre = {
     getAllGenres: async () => {
         const conn = await db.getConnection();
         try {
-            const [rows] = await conn.execute('SELECT * FROM genres');
+            const [rows] = await conn.execute('SELECT * FROM genre');
             return rows;
         } catch (error) {
             console.error(error);
