@@ -11,15 +11,7 @@ router.get('/getAPI', authMiddleware, getAllGenresFromAPI);
 router.get('/getDB', authMiddleware, getAllGenresFromDB);
 
 // Define the route for retrieving and inserting genres
-router.get('/', authMiddleware, async (req, res) => {
-    try {
-        await fetchAndInsertGenres();
-        res.send('Genres fetched and inserted successfully.');
-    } catch (error) {
-        console.error('Error fetching and inserting genres:', error);
-        res.status(500).send('An error occurred while fetching and inserting genres.');
-    }
-});
+router.get('/', authMiddleware, fetchAndInsertGenres);
 
 
 // Export the router

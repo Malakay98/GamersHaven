@@ -1,9 +1,11 @@
 import express from "express";
 import * as dotenv from 'dotenv'
+import tagsRoutes from './routes/tags.js';
 import userRoutes from './routes/users.js';
 import gamesRoutes from './routes/games.js';
 import genresRoutes from './routes/genres.js';
 import platformsRoutes from './routes/platforms.js';
+import developersRoutes from './routes/developers.js';
 dotenv.config()
 
 const app = express();
@@ -12,7 +14,6 @@ const app = express();
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
-
 
 // Routes for user
 app.use('/users', userRoutes);
@@ -25,6 +26,12 @@ app.use('/genres', genresRoutes)
 
 // Routes for platforms
 app.use('/platforms', platformsRoutes)
+
+// Routes for developers
+app.use('/developers', developersRoutes)
+
+// Routes for Tags
+app.use('/tags', tagsRoutes)
 
 
 const PORT = process.env.PORT || 3000;

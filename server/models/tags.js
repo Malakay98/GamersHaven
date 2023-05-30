@@ -1,49 +1,51 @@
 import db from '../database/db.js';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
-dotenv.config()
+dotenv.config();
 
 const TIMEOUT_DURATION = 5000; // Timeout duration in milliseconds
 
-export const Platforms = {
-    getAllPlatformsDB: async () => {
+export const Tag = {
+    getAllTagsDB: async () => {
         const conn = await db.getConnection();
         try {
-            const [rows] = await conn.execute('SELECT * FROM platforms');
+            const [rows] = await conn.execute('SELECT * FROM tags');
             return rows;
         } catch (error) {
             console.log(error);
-            throw error
+            throw error;
         } finally {
             conn.release()
         }
     },
 
-    getPlatformById: async (platformId) => {
+
+    getTagById: async (tagId) => {
         const conn = await db.getConnection();
         try {
-            const [rows] = await conn.execute('SELECT * FROM platforms WHERE platformId = ?', [platformId]);
+            const [rows] = await conn.execute('SELECT * FROM tags WHERE tag_id = ?', [tagId]);
             if (rows.length > 0) {
                 return rows[0];
             }
-            // If no matching platform is found
-            return null;
+            // If no matching tag is found
+            return null
         } catch (error) {
-            console.error('Error fetching platform by ID', error);
+            console.error('Error fetching tag by ID', error)
             throw error;
         } finally {
             conn.release();
         }
     },
 
-    getAllPlatformsAPI: async () => {
+
+    getAllTagsAPI: async () => {
         const pageSize = 100;
         let currentPage = 1;
-        let allPlatforms = [];
+        let allTags = [];
         try {
             let response;
             do {
-                response = await axios.get('https://api.rawg.io/api/platforms', {
+                response = await axios.get('https://api.rawg.io/api/tags', {
                     params: {
                         key: process.env.RAWG_KEY,
                         page: currentPage,
@@ -52,25 +54,24 @@ export const Platforms = {
                     },
                 });
 
-                const platforms = response.data.results;
-                allPlatforms = allPlatforms.concat(platforms);
+                const tags = response.data.results;
+                allTags = allTags.concat(tags);
 
                 currentPage++;
             } while (response.data.next); // Continue fetching next pages if available
 
-            return allPlatforms;
+            return allTags;
         } catch (error) {
-            console.error('Error fetching platforms from API:', error);
+            console.error('Error fetching tags from API:', error);
             throw error;
         }
     },
 
-    insertPlatforms: async (platformId, platformName) => {
+    insertTags: async (tagId, tagName) => {
         const conn = await db.getConnection();
         try {
-            const [result] = await conn.execute('INSERT INTO platforms (platformId, name) VALUES (?, ?)', [
-                platformId,
-                platformName,
+            const [result] = await conn.execute('INSERT INTO tags (tag_id, name) VALUES (?, ?)', [
+                tagId, tagName,
             ]);
             return result.affectedRows;
         } catch (error) {
@@ -83,4 +84,4 @@ export const Platforms = {
 }
 
 
-export default Platforms;
+export default Tag;

@@ -108,6 +108,7 @@ export const User = {
                 },
             });
             const game = gameResponse.data;
+            console.log(game)
 
             if (!game) {
                 return false;
@@ -117,6 +118,10 @@ export const User = {
                 return false;
             }
 
+            // Store the game in the video_games table
+            await conn.execute('INSERT INTO video_games (game_id, title, developer, publisher, release_date, description, rating, image_url, genre_id, platformId, metacritic) VALUES (?, ?, ?)', [game.id, game.name, game.released, game.description, game.rating, game.background_image, game.metacritic]);
+
+            // Add the favorite to user_favorites table
             await conn.execute('INSERT INTO user_favorites (user_id, game_id) VALUES (?, ?)', [userId, gameId]);
 
             return true;
