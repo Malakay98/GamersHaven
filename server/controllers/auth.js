@@ -12,13 +12,10 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = JWT.verify(token, process.env.JWT_SECRET);
-        if (!decoded.user || !decoded.user.id) {
-            return res
-                .status(401)
-                .json({ msg: "The data inside the token doesn't correspond to the user" });
+        if (!decoded || !decoded.userId) {
+            return res.status(401).json({ msg: "The data inside the token doesn't correspond to the user", decoded });
         }
-        const user = await User.getById(decoded.user.id);
-        console.log(user);
+        const user = await User.findOne({ _id: decoded.userId });
         if (!user) {
             return res.status(401).json({ msg: 'Invalid token, authorization denied' });
         }

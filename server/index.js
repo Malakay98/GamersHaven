@@ -1,5 +1,6 @@
 import express from "express";
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
+import mongoose from "mongoose";
 import tagsRoutes from './routes/tags.js';
 import userRoutes from './routes/users.js';
 import gamesRoutes from './routes/games.js';
@@ -32,6 +33,8 @@ app.use('/developers', developersRoutes)
 
 // Routes for Tags
 app.use('/tags', tagsRoutes)
+
+mongoose.connect(process.env.MONGODB_URI).then(() => console.log("connected to MongoDB")).catch((error) => console.error(error + "Erorr"))
 
 
 const PORT = process.env.PORT || 3000;

@@ -1,17 +1,14 @@
 import express from 'express';
-import {  getAllDevelopersFromAPI, getAllDevelopersFromDB, fetchAndInsertDevelopers } from '../controllers/developers.js';
+import {  getAllDevelopers, getDeveloperByName } from '../controllers/developers.js';
 import authMiddleware from '../controllers/auth.js';
 
 const router = express.Router();
 
 // Get Platforms from the API
-router.get('/getAPI', authMiddleware, getAllDevelopersFromAPI);
+router.get('/', authMiddleware, getAllDevelopers);
 
 // Get Platforms from the DB
-router.get('/getDB', authMiddleware, getAllDevelopersFromDB);
-
-// Get and insert the platforms name's and id's
-router.get('', authMiddleware, fetchAndInsertDevelopers);
+router.get('/getByName', authMiddleware, getDeveloperByName);
 
 // Export the router
 export default router;

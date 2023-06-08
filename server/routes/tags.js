@@ -1,17 +1,14 @@
 import express from 'express';
-import {  getAllTagsFromAPI, getAllTagsFromDB, fetchAndInsertTags } from '../controllers/tags.js';
+import {  getAllTags, getTagByName } from '../controllers/tags.js';
 import authMiddleware from '../controllers/auth.js';
 
 const router = express.Router();
 
 // Get Platforms from the API
-router.get('/getAPI', authMiddleware, getAllTagsFromAPI);
+router.get('/', authMiddleware, getAllTags);
 
 // Get Platforms from the DB
-router.get('/getDB', authMiddleware, getAllTagsFromDB);
-
-// Get and insert the platforms name's and id's
-router.get('', authMiddleware, fetchAndInsertTags);
+router.get('/getByName', authMiddleware, getTagByName);
 
 // Export the router
 export default router;

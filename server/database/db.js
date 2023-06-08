@@ -1,12 +1,29 @@
-import mysql from "mysql2/promise";
+import { MongoClient } from 'mongodb';
 import * as dotenv from 'dotenv';
-dotenv.config()
+dotenv.config();
 
-const db = await mysql.createPool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB_NAME;
+
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
+
+let db;
+
+const connectToMongoDB = async () => {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+
+    db = client.db(dbName);
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    process.exit(1);
+  }
+};
+
+connectToMongoDB();
 
 export default db;
