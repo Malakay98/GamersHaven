@@ -1,4 +1,3 @@
-import User from '../models/users.js';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 dotenv.config()

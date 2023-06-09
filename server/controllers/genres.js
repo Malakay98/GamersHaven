@@ -1,4 +1,3 @@
-import Genre from '../models/genres.js';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 dotenv.config()
